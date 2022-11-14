@@ -1,6 +1,7 @@
 # Importing Required Libraries
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Flatten
 from tensorflow.keras.layers import Conv2D
@@ -29,6 +30,7 @@ test_generator = test_datagenerator.flow_from_directory(
         class_mode='categorical')
 
 # Building the CNN architecture
+# with four conv2D layers, two dense layers and one flatten layer
 recognition_model = Sequential()
 
 recognition_model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(48,48,1)))
@@ -57,7 +59,7 @@ cv2.ocl.setUseOpenCL(False)
 recognition_model.compile(loss='categorical_crossentropy',optimizer=Adam(learning_rate=0.0001, decay=1e-6),metrics=['accuracy'])
 
 # Train the model
-recognition_model_info = recognition_model.fit_generator(
+recognition_model_info = recognition_model.fit(
         train_generator,
         steps_per_epoch=28709 // 64,
         epochs=60,
@@ -67,13 +69,31 @@ recognition_model_info = recognition_model.fit_generator(
 # Saving the trained Model Weights
 recognition_model.save_weights('recognition_model.h5')
 
+# Summarize history for accuracy
+plt.title('Model Accuracy')
+plt.plot(recognition_model_info.history['accuracy'])
+plt.plot(recognition_model_info.history['val_accuracy'])
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+# Summarize history for loss
+plt.title('Model Loss')
+plt.plot(recognition_model_info.history['loss'])
+plt.plot(recognition_model_info.history['val_loss'])
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
 # For detecting bounding boxes of face in the webcam and
 # to predict the emotions we use OpenCV Haarcascade xml:
 
 # Facial emotion Dictonary with values
 facial_dict = {0: "Angry", 1: "Disgusted", 2: "Fearful", 3: "Happy", 4: "Neutral", 5: "Sad", 6: "Surprised"}
 
-# start the webcam feed
+# Start the webcam feed
 cap = cv2.VideoCapture(0)
 while True:
     # Find haar cascade to draw bounding box around face
